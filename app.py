@@ -1,6 +1,6 @@
 import os
 from flask import Flask, request, jsonify
-from langchain.document_loaders import PyPDFLoader
+from langchain_community.document_loaders import PyPDFLoader  # Achtung: ggf. from langchain.document_loaders import PyPDFLoader, wenn du eine ältere Version verwendest
 from langchain.text_splitter import RecursiveCharacterTextSplitter
 from langchain.embeddings.openai import OpenAIEmbeddings
 from langchain.vectorstores import Chroma
@@ -11,7 +11,7 @@ from langchain.chat_models import ChatOpenAI
 app = Flask(__name__)
 
 # 2. OpenAI API Key (ersetzen durch deinen eigenen Schlüssel)
-OPENAI_API_KEY = "DEIN_OPENAI_API_KEY"
+OPENAI_API_KEY = "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"
 os.environ["OPENAI_API_KEY"] = OPENAI_API_KEY
 
 # 3. Pfad zum Ordner mit den PDF-Dateien
@@ -37,13 +37,13 @@ def load_and_split_pdfs(directory):
 documents = load_and_split_pdfs(PDF_DIRECTORY)
 
 # 6. Embeddings erzeugen und in Chroma-Datenbank ablegen
-embeddings = OpenAIEmbeddings(model="text-embedding-ada-002")  # Beispiel: text-embedding-ada-002
+embeddings = OpenAIEmbeddings(model="text-embedding-ada-002")  # Beispielhaftes Embedding-Modell
 vectorstore = Chroma.from_texts(documents, embedding=embeddings, persist_directory="chroma_db")
 
-# 7. RetrievalQA-Chain aufsetzen
+# 7. RetrievalQA-Chain aufsetzen, jetzt mit "gpt-3.5-turbo"
 retriever = vectorstore.as_retriever()
 qa_chain = RetrievalQA.from_chain_type(
-    llm=ChatOpenAI(temperature=0, model_name="o1-mini"),  # Beispielhafter Modellname
+    llm=ChatOpenAI(temperature=0, model_name="gpt-3.5-turbo"),
     chain_type="stuff",
     retriever=retriever
 )
