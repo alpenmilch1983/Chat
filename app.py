@@ -38,7 +38,7 @@ def load_and_split_pdfs(directory):
 # 2. Dokumente einlesen
 documents = load_and_split_pdfs(PDF_DIRECTORY)
 
-# 3. Embeddings mit 'text-embedding-3-large' erzeugen
+# 3. Embeddings mit 'text-embedding-3-large' erzeugen mit OpenAi
 embeddings = OpenAIEmbeddings(model="text-embedding-3-large")
 
 # 4. Chroma-Datenbank neu anlegen / aktualisieren
