@@ -85,7 +85,7 @@ def ask():
     if qa_chain is None:
         init_qa_chain()
 
-    result = qa_chain.run(user_question)
+    result = qa_chain.invoke(user_question)
     return jsonify({"answer": result})
 
 if __name__ == "__main__":
