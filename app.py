@@ -18,7 +18,7 @@ app = Flask(__name__, template_folder="templates", static_folder="static")
 with open("api.txt", "r") as f:
     OPENAI_API_KEY = f.read().strip()
 
-# 2. Setze den API Key in der Umgebung (kann von den OpenAI-Klassen genutzt werden.)
+# 2. Setze den API Key in der Umgebung (kann von den OpenAI-Klassen genutzt werden)
 os.environ["OPENAI_API_KEY"] = OPENAI_API_KEY
 
 # Pfad zu deinem Dokumenten-Verzeichnis (mit PDF-Dateien)
