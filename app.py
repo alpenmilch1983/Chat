@@ -1,22 +1,20 @@
 import os
 from flask import Flask, request, jsonify, render_template
 
-# PyPDFLoader (oft in langchain_community.document_loaders zu finden)
+# PyPDFLoader aus langchain_community.document_loaders
 from langchain_community.document_loaders import PyPDFLoader
 
-# RecursiveCharacterTextSplitter (noch häufig in langchain.text_splitter verfügbar)
-from langchain.text_splitter import RecursiveCharacterTextSplitter
+# RecursiveCharacterTextSplitter aus langchain_text_splitters
+from langchain_text_splitters import RecursiveCharacterTextSplitter
 
-# Chroma (laut Migrationshinweisen inzwischen in langchain_community.vectorstores)
+# Chroma aus langchain_community.vectorstores
 from langchain_community.vectorstores import Chroma
 
-# RetrievalQA lebt in vielen Versionen immer noch in langchain.chains
-# (Wenn du es in langchain_core nicht findest, nimm langchain.chains.)
+# RetrievalQA aus langchain.chains
 from langchain.chains import RetrievalQA
 
-# OpenAIEmbeddings und ChatOpenAI kommen (ab neueren Versionen) aus langchain_openai
+# OpenAIEmbeddings und ChatOpenAI aus langchain_openai
 from langchain_openai import OpenAIEmbeddings, ChatOpenAI
-
 
 app = Flask(__name__, template_folder="templates", static_folder="static")
 
@@ -31,7 +29,7 @@ PDF_DIRECTORY = "docs"
 def load_and_split_pdfs(directory):
     """Liest PDFs aus einem Verzeichnis ein und zerlegt sie in Text-Chunks."""
     all_docs = []
-    splitter = RecursiveCharacterTextSplitter(chunk_size=8000, chunk_overlap=80)
+    splitter = RecursiveCharacterTextSplitter(chunk_size=800, chunk_overlap=100)  # Angepasste Chunk-Größe
     for file_name in os.listdir(directory):
         if file_name.endswith(".pdf"):
             file_path = os.path.join(directory, file_name)
@@ -85,7 +83,7 @@ def ask():
     if qa_chain is None:
         init_qa_chain()
 
-    result = qa_chain.invoke(user_question)
+    result = qa_chain.invoke(user_question)  # Hier wurde run zu invoke geändert
     return jsonify({"answer": result})
 
 if __name__ == "__main__":
