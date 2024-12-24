@@ -1,27 +1,23 @@
 import os
 from flask import Flask, request, jsonify, render_template
 
-# Falls du eine neuere LangChain-Version hast und PyPDFLoader in langchain_community liegt:
+# PDF-Loader – je nach LangChain-Version: langchain_community oder direkt langchain
 from langchain_community.document_loaders import PyPDFLoader  
-# (Bei älteren Versionen evtl.: from langchain.document_loaders import PyPDFLoader)
+# from langchain.document_loaders import PyPDFLoader  # (Bei älteren LC-Versionen)
 
 from langchain.text_splitter import RecursiveCharacterTextSplitter
 from langchain.vectorstores import Chroma
 
-# Neu: Klasse OpenAIEmbeddings & ChatOpenAI kommen aus langchain_openai
+# Neuere Imports aus langchain_openai statt langchain.embeddings/chat_models
 from langchain_openai import OpenAIEmbeddings, ChatOpenAI
 
-# Flask-Initialisierung
 app = Flask(__name__, template_folder="templates", static_folder="static")
 
-# 1. Lies deinen OpenAI API Key aus der Datei "api.txt"
+# 1. API-Key aus Datei 'api.txt' lesen
 with open("api.txt", "r") as f:
     OPENAI_API_KEY = f.read().strip()
-
-# 2. Setze den API Key in der Umgebung (kann von den OpenAI-Klassen genutzt werden)
 os.environ["OPENAI_API_KEY"] = OPENAI_API_KEY
 
-# Pfad zu deinem Dokumenten-Verzeichnis (mit PDF-Dateien)
 PDF_DIRECTORY = "docs"
 
 def load_and_split_pdfs(directory):
@@ -39,42 +35,42 @@ def load_and_split_pdfs(directory):
                     all_docs.append(chunk)
     return all_docs
 
-# Dokumente verarbeiten
+# 2. Dokumente einlesen
 documents = load_and_split_pdfs(PDF_DIRECTORY)
 
-# Embeddings mit dem neuen Paket (Achte auf das Modell; "text-embedding-ada-002" ist Standard)
-embeddings = OpenAIEmbeddings(model="text-embedding-ada-002")
+# 3. Embeddings mit 'text-embedding-3-large' erzeugen
+embeddings = OpenAIEmbeddings(model="text-embedding-3-large")
 
-# Chroma-Datenbank erzeugen (oder laden, falls persist_directory bereits existiert)
+# 4. Chroma-Datenbank neu anlegen / aktualisieren
+#    Falls eine alte DB existiert (z. B. mit anderer Dimension), lösche vorher das Verzeichnis 'chroma_db'
 vectorstore = Chroma.from_texts(
     texts=documents,
     embedding=embeddings,
-    persist_directory="chroma_db"
+    persist_directory="chroma_db"  
 )
 
-# Retrieval-Objekt
 retriever = vectorstore.as_retriever()
-qa_chain = None  # Wird beim ersten Aufruf initialisiert
 
+# 5. Chain-Initialisierung (z. B. RetrievalQA)
+qa_chain = None
 def init_qa_chain():
-    """Erzeugt die RetrievalQA-Kette mit ChatOpenAI."""
     global qa_chain
     from langchain.chains import RetrievalQA
-    llm = ChatOpenAI(temperature=0, model_name="gpt-3.5-turbo")
+    # Hier verwenden wir das hypothetische Chat-Modell 'gpt-4o-mini-2024-07-18'
+    # Bitte sicherstellen, dass dieser Modellname bei deinem Anbieter existiert/erlaubt ist.
+    llm = ChatOpenAI(temperature=0, model_name="gpt-4o-mini-2024-07-18")
     qa_chain = RetrievalQA.from_chain_type(
         llm=llm,
-        chain_type="stuff",
+        chain_type="stuff", 
         retriever=retriever
     )
 
 @app.route("/")
 def index():
-    """Zeigt die Startseite mit dem Chatfenster (index.html)."""
     return render_template("index.html")
 
 @app.route("/ask", methods=["POST"])
 def ask():
-    """Empfängt eine Frage (`query`) im JSON-Body und gibt die Antwort als JSON zurück."""
     data = request.get_json()
     user_question = data.get("query", "")
 
@@ -85,7 +81,5 @@ def ask():
     return jsonify({"answer": result})
 
 if __name__ == "__main__":
-    # QA-Chain schon beim Start initialisieren
     init_qa_chain()
-    # Server starten
-    app.run(host="0.0.0.0", port=5000, debug=False)
+    app.run(host="0.0.0.0", port=5000, debug=True)
