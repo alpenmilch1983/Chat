@@ -33,12 +33,14 @@ def load_and_split_pdfs(directory):
     for file_name in os.listdir(directory):
         if file_name.endswith(".pdf"):
             file_path = os.path.join(directory, file_name)
-            loader = PyPDFLoader(file_path)
-            pdf_docs = loader.load()
-            for doc in pdf_docs:
-                chunks = splitter.split_text(doc.page_content)
-                for chunk in chunks:
-                    all_docs.append(chunk)
+            try:
+                loader = PyPDFLoader(file_path)
+                pdf_docs = loader.load()
+                for doc in pdf_docs:
+                    chunks = splitter.split_text(doc.page_content)
+                    all_docs.extend(chunks)
+            except Exception as e:
+                print(f"Fehler beim Laden von {file_name}: {e}")
     return all_docs
 
 # 3) Dokumente einlesen und splitten
@@ -83,8 +85,16 @@ def ask():
     if qa_chain is None:
         init_qa_chain()
 
-    result = qa_chain.invoke(user_question)  # Hier wurde run zu invoke geändert
-    return jsonify({"answer": result})
+    # Verwende invoke und extrahiere die relevante Antwort
+    result = qa_chain.invoke(user_question)
+
+    # Prüfe die Struktur von result und extrahiere die Antwort
+    if isinstance(result, dict):
+        answer = result.get('output', 'Keine Antwort erhalten.')
+    else:
+        answer = str(result)  # Fallback, falls die Struktur anders ist
+
+    return jsonify({"answer": answer})
 
 if __name__ == "__main__":
     init_qa_chain()
