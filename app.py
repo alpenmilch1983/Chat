@@ -31,7 +31,7 @@ PDF_DIRECTORY = "docs"
 def load_and_split_pdfs(directory):
     """Liest PDFs aus einem Verzeichnis ein und zerlegt sie in Text-Chunks."""
     all_docs = []
-    splitter = RecursiveCharacterTextSplitter(chunk_size=1000, chunk_overlap=100)
+    splitter = RecursiveCharacterTextSplitter(chunk_size=8000, chunk_overlap=80)
     for file_name in os.listdir(directory):
         if file_name.endswith(".pdf"):
             file_path = os.path.join(directory, file_name)
